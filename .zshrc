@@ -204,6 +204,32 @@ fi
 
 # }}}
 
+# {{{ nnn
+
+if (( $+commands[nnn] )); then
+    export NNN_OPTS=aBdoRS
+
+    typeset -TUx NNN_BMS nnn_bms ;
+    nnn_bms=(m:~/.config/nnn/mounts)
+
+    typeset -TUx NNN_PLUG nnn_plug ;
+    nnn_plug=()
+
+    typeset -TUx NNN_ORDER nnn_order ;
+    nnn_order=(t:/)
+
+    export NNN_SSHFS='sshfs'
+
+    if (( $+commands[trash-cli] )); then
+        NNN_TRASH=1
+    elif (( $+commands[gio] )); then
+        NNN_TRASH=2
+    fi
+    export NNN_TRASH
+fi
+
+# }}}
+
 # {{{
 
 is_linux=0 is_osx=0
