@@ -60,12 +60,13 @@ compinit
     fi
 }
 
-# dotfiles-commit-auto() {
-#     local modified=($(dotfiles diff --name-only)) x
-#     for x in $modified; do
-#         dotfiles diff -- $x
-#     done
-# }
+if ! pgrep -u $USER ssh-agent > /dev/null; then
+    ssh-agent > ~/.ssh-agent-thing
+fi
+if (( ! $+SSH_AGENT_PID )); then
+    eval "$(< ~/.ssh-agent-thing)" > /dev/null
+fi
+alias ssh='ssh-add -l > /dev/null || ssh-add && unalias ssh; ssh'
 
 [[ $TERM != linux ]] || return 0
 
@@ -210,7 +211,10 @@ if (( $+commands[nnn] )); then
     export NNN_OPTS=aBdoRS
 
     typeset -TUx NNN_BMS nnn_bms ;
-    nnn_bms=(m:~/.config/nnn/mounts)
+    nnn_bms=(
+        m:~/.config/nnn/mounts
+        M:/run/media/$USER
+    )
 
     typeset -TUx NNN_PLUG nnn_plug ;
     nnn_plug=()
@@ -218,15 +222,18 @@ if (( $+commands[nnn] )); then
     typeset -TUx NNN_ORDER nnn_order ;
     nnn_order=(t:/)
 
-    export NNN_SSHFS='sshfs'
+    export RCLONE='rclone mount --'
 
-    if (( $+commands[trash-cli] )); then
-        NNN_TRASH=1
-    elif (( $+commands[gio] )); then
-        NNN_TRASH=2
+    if (( $+commands[trash] )); then
+        export NNN_TRASH=1
+    # elif (( $+commands[gio] )); then
+    #     NNN_TRASH=2
     fi
-    export NNN_TRASH
 fi
+
+# }}}
+
+# {{{
 
 # }}}
 
