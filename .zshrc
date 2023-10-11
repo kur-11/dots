@@ -1,5 +1,3 @@
-# {{{ minimal settings
-
 ttyctl -f
 
 bindkey -d
@@ -29,8 +27,14 @@ zstyle ':zle:*' word-style unspecified
 
 alias relogin='exec $SHELL -l'
 
+# {{{ disable history
+
 unset HISTFILE
 export HISTSIZE=0
+
+# }}}
+
+# {{{ environment variables
 
 typeset -U path cdpath
 
@@ -47,6 +51,10 @@ cdpath=(
     $cdpath
 )
 
+# }}}
+
+# {{{ dotfiles
+
 autoload -Uz compinit
 compinit
 
@@ -60,13 +68,23 @@ compinit
     fi
 }
 
-if ! pgrep -u $USER ssh-agent > /dev/null; then
-    ssh-agent > ~/.ssh-agent-thing
+# }}}
+
+# {{{ ssh-agent
+
+if (( $+commands[ssh-agent] )); then
+    if ! pgrep -u $USER ssh-agent > /dev/null; then
+        ssh-agent > ~/.ssh-agent-thing
+    fi
+    if (( ! $+SSH_AGENT_PID )); then
+        eval "$(< ~/.ssh-agent-thing)" > /dev/null
+    fi
+    alias ssh='ssh-add -l > /dev/null || ssh-add && unalias ssh; ssh'
 fi
-if (( ! $+SSH_AGENT_PID )); then
-    eval "$(< ~/.ssh-agent-thing)" > /dev/null
-fi
-alias ssh='ssh-add -l > /dev/null || ssh-add && unalias ssh; ssh'
+
+# }}}
+
+# {{{ return if console
 
 [[ $TERM != linux ]] || return 0
 
@@ -105,7 +123,6 @@ znap source zsh-users/zsh-syntax-highlighting
 # {{{ prezto
 
 # arch: pkgfile
-
 znap source sorin-ionescu/prezto modules/{command-not-found,completion}
 
 # }}}
@@ -116,7 +133,7 @@ znap source asdf-vm/asdf asdf.sh
 
 # }}}
 
-# {{{
+# {{{ prompt
 
 export PURE_PROMPT_SYMBOL='›'
 export PURE_PROMPT_VICMD_SYMBOL='‹'
@@ -124,7 +141,7 @@ znap source kur-11/pure async.zsh pure.zsh
 
 # }}}
 
-# {{{
+# {{{ history
 
 setopt BANG_HIST
 setopt EXTENDED_HISTORY
@@ -174,8 +191,11 @@ mkcd() { install -Ddv "$1" && cd "$1" }
 # {{{
 
 alias ls='ls -Xv --color=auto --group-directories-first'
+
 alias cp='cp -v'
+
 alias mv='mv -v'
+
 alias grep='grep --color=auto'
 
 # }}}
@@ -183,7 +203,7 @@ alias grep='grep --color=auto'
 # {{{ rust
 
 if (( $+commands[cargo] )); then
-    path+=(~/.cargo/bin(N-/))
+    path=(~/.cargo/bin(N-/) $path)
 fi
 
 # }}}
@@ -192,7 +212,7 @@ fi
 
 if (( $+commands[go] )); then
     export GOPATH=~/.go
-    path+=($GOPATH/bin)
+    path=($GOPATH/bin(N-/) $path)
 fi
 
 # }}}
@@ -226,27 +246,7 @@ if (( $+commands[nnn] )); then
 
     if (( $+commands[trash] )); then
         export NNN_TRASH=1
-    # elif (( $+commands[gio] )); then
-    #     NNN_TRASH=2
     fi
-fi
-
-# }}}
-
-# {{{
-
-# }}}
-
-# {{{
-
-is_linux=0 is_osx=0
-case $OSTYPE in
-    linux*) islinux=1 ;;
-    darwin*) isosx=1 ;;
-esac
-
-if (( $isosx )); then
-    alias reset-launchpad='defaults write com.apple.dock ResetLaunchPad -bool true && killall Dock'
 fi
 
 # }}}

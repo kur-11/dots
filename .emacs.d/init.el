@@ -40,6 +40,13 @@
     :config
     (leaf-keywords-init)))
 
+(leaf eshell
+  :bind ("C-c #" . eshell)
+  :custom (eshell-path-env . `,(string-join exec-path ":"))
+  :config
+  (defun eshell/hello ()
+    (message "hello world")))
+
 (leaf whitespace
   :hook (before-save-hook . whitespace-cleanup)
   :custom
@@ -49,3 +56,33 @@
                                    (tab-mark ?\t [?\u00bb ?\t] [?\\ ?\t])))
   (whitespace-action . '(auto-cleanup))
   :global-minor-mode global-whitespace-mode)
+
+;;;
+
+(leaf ddskk
+  :ensure t
+  :hook (after-init-hook . my/ddskk-skk-get)
+  :init
+  (setq default-input-method "japanese-skk")
+  (setq skk-status-indicator 'minor-mode)
+  (setq skk-egg-like-newline t)
+  (setq skk-latin-mode-string "a")
+  (setq skk-hiragana-mode-string "あ")
+  (setq skk-katakana-mode-string "ア")
+  (setq skk-jisx0208-latin-mode-string "Ａ")
+  (setq my/ddskk-jisyo-directory (locate-user-emacs-file "jisyo"))
+  (defun my/ddskk-skk-get ()
+    (unless (file-directory-p my/ddskk-jisyo-directory)
+            (skk-get my/ddskk-jisyo-directory))))
+
+(leaf open-junk-file
+  :ensure t
+  :hook (kill-emacs-hook . my/open-junk-file-delete-files)
+  :bind ("C-c j" . open-junk-file)
+  :init
+  (setq my/open-junk-file-directory (locate-user-emacs-file "junk/"))
+  (setq open-junk-file-format (concat my/open-junk-file-directory "%s."))
+  (defun my/open-junk-file-delete-files ()
+    (interactive)
+    (let ((junk-files (directory-files my/open-junk-file-directory t "^\\([^.]\\|\\.[^.]\\|\\.\\..\\)")))
+      (dolist (x junk-files) (delete-file x)))))
